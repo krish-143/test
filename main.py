@@ -127,7 +127,7 @@ if __name__ == '__main__':
     parser.add_argument("-b", "--defbranch", help="Default Branch", default="main")
     args = parser.parse_args()
     config = vars(args)
-    print(f"Arguments Passed in: {config}")
+    print("Arguments Passed in: {config}")
 
     if "GITHUB_TOKEN" not in os.environ:
         print("GITHUB TOKEN not in environment")
