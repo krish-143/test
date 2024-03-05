@@ -12,6 +12,9 @@ on:
       description:
         description: "Repository Description"
         required: false
+      engineer-type:
+        description: "choose engineer type"
+        required: true  
       defbranch:
         description: "Default Branch"
         required: false
@@ -31,4 +34,4 @@ jobs:
       - name: Build and run Docker image
         run: |
           docker build -t repo-creator .
-          docker run --env GITHUB_TOKEN=${{ secrets.GH_TOKEN }} repo-creator -n ${{ github.event.inputs.name }} -o ${{ github.event.inputs.organization }} -d "${{ github.event.inputs.description }}" -b ${{ github.event.inputs.defbranch }}
+          docker run --env GITHUB_TOKEN=${{ secrets.GH_TOKEN }} repo-creator -n ${{ github.event.inputs.name }} -o ${{ github.event.inputs.organization }} -d "${{ github.event.inputs.description }}" -b ${{ github.event.inputs.defbranch }} -t ${{ github.event.inputs.engineer-type }}
