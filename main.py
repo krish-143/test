@@ -125,8 +125,8 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--description", help="Repository Description", default="")
     parser.add_argument("-t", "--engineer-type", help="Engineer Type (platform or data)", default="platform")
     parser.add_argument("-b", "--defbranch", help="Default Branch", default="main")
-    args, unknown = parser.parse_known_args()  # Parse only known arguments
-    config = vars(args)
+    unknown = parser.parse_known_args()  # Parse only known arguments
+    config = vars(unknown)
     print("Arguments Passed in: {config}")
 
     if "GITHUB_TOKEN" not in os.environ:
