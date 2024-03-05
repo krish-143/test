@@ -1,58 +1,38 @@
-"""
-This script is used to interact with GitHub's API to perform various operations such as creating a repository,
-renaming a branch, updating the default branch, adding collaborators and teams to a repository, adding a .gitignore file,
-and protecting a branch.
-"""
-
 import requests
 import json
 import argparse
 import os
 import base64
 
-# Parse command line arguments
-parser = argparse.ArgumentParser(description="GitHub Repo Creation Utility",
-                                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("-n", "--name", help="Repository Name")
-parser.add_argument("-o", "--organization", help="Organization Name")
-parser.add_argument("-d", "--description",
-                    help="Repository Description", default="")
-parser.add_argument("-b", "--defbranch", help="Default Branch", default="main")
-args = parser.parse_args()
-config = vars(args)
-print(f"Arguments Passed in: {config}")
-
-
 class Repo:
     """
-    This class represents a GitHub repository. It includes methods for creating the repository, renaming a branch,
-    updating the default branch, adding collaborators and teams, adding a .gitignore file, and protecting a branch.
+    This class represents a GitHub repository creation utility. It includes methods for creating a repository,
+    configuring it based on engineer type (Platform or Data), and adding collaborators.
     """
 
-    # Class attributes
+    # GitHub API headers
     auth_headers = {
         "Accept": "application/vnd.github+json",
         "Content-Type": "application/json",
         "Authorization": "Bearer {}".format(os.getenv("GITHUB_TOKEN"))
     }
 
-    def __init__(self, org, repo_name):
+    def __init__(self, org, repo_name, description, engineer_type):
         """
-        Initialize a Repo object with the given organization and repository name.
+        Initialize a Repo object with the given organization, repository name, description, and engineer type.
         """
-
         self.org = org
-        self.repo_name = "repo-{}".format(repo_name)
+        self.repo_name = repo_name
+        self.description = description
+        self.engineer_type = engineer_type
 
-    # Create Repo Method
-    def create_repo(self, repo_description):
+    def create_repo(self):
         """
         Create a new repository with the given description.
         """
-
         repo_creation_config = {
             "name": self.repo_name,
-            "description": f"{repo_description}",
+            "description": self.description,
             "homepage": "https://github.com",
             "private": True,
             "has_issues": True,
@@ -74,174 +54,80 @@ class Repo:
         else:
             print(f'Create repo error Message: {res_dict["message"]}')
 
-        return repo_creation_config["name"]
+        return res_dict["name"]
 
-    def rename_branch(self, old_name, new_name):
+    def add_collaborators(self, collaborators):
         """
-        Rename a branch in the repository from old_name to new_name.
+        Add collaborators to the repository.
         """
+        for collaborator in collaborators:
+            username, permission = collaborator.split(":")
+            r = requests.put(
+                f"https://api.github.com/repos/{self.org}/{self.repo_name}/collaborators/{username}",
+                headers=self.auth_headers,
+                data=json.dumps({"permission": permission})
+            )
 
-        r = requests.post(
-            "https://api.github.com/repos/{}/{}/branches/{}/rename".format(
-                self.org, self.repo_name, old_name),
-            headers=self.auth_headers,
-            data=json.dumps({"new_name": new_name})
-        )
+            if r.status_code == 200:
+                print(f"{username} added to repo with permission: {permission}")
+            elif r.status_code == 204:
+                print(f"{username} already has {permission} permissions")
+            else:
+                res_dict = json.loads(r.text)
+                print('Error Message: {}'.format(res_dict["message"]))
 
-        res_dict = json.loads(r.text)
-
-        if r.status_code == 201:
-            print("Default branch is now: {}".format(new_name))
-        else:
-            print('Error Message: {}'.format(res_dict["message"]))
-
-    def update_default_branch(self, default_branch):
+    def configure_for_platform_engineer(self):
         """
-        Update the default branch of the repository to the given branch.
+        Configure repository for a Platform Engineer.
         """
+        print("Configuring repository for Platform Engineer...")
+        # Add Terraform configurations
+        self.add_terraform_configurations()
+        # Add collaborators specific to Platform Engineer
+        self.add_collaborators(["admin-user:admin", "maintain-user:maintain"])
+        print("Repository configured for Platform Engineer.")
 
-        r = requests.patch(
-            "https://api.github.com/repos/{}/{}".format(
-                self.org, self.repo_name),
-            headers=self.auth_headers,
-            data=json.dumps({"default_branch": default_branch})
-        )
-
-        res_dict = json.loads(r.text)
-
-        if r.status_code == 200:
-            print("Default branch is now: {}".format(default_branch))
-        else:
-            print('Error Message: {}'.format(res_dict["message"]))
-
-    def add_repo_collaborator(self, username, permission):
+    def configure_for_data_engineer(self):
         """
-        Add a collaborator with the given username and permission to the repository.
+        Configure repository for a Data Engineer.
         """
+        print("Configuring repository for Data Engineer...")
+        # Add Python configurations
+        self.add_python_configurations()
+        # Add collaborators specific to Data Engineer
+        self.add_collaborators(["data-user:read"])
+        print("Repository configured for Data Engineer.")
 
-        r = requests.put(
-            "https://api.github.com/repos/{}/{}/collaborators/{}".format(
-                self.org, self.repo_name, username),
-            headers=self.auth_headers,
-            data=json.dumps({"permission": permission})
-        )
-
-        if r.status_code == 200:
-            print("{} added to repo with permission: {}".format(
-                username, permission))
-        elif r.status_code == 204:
-            print("{} already has {} permissions".format(username, permission))
-        else:
-            res_dict = json.loads(r.text)
-            print('Error Message: {}'.format(res_dict["message"]))
-
-    def add_repo_team(self, team_name, permission):
+    def add_terraform_configurations(self):
         """
-        Add a team with the given name and permission to the repository.
+        Add Terraform configurations to the repository.
         """
+        # Add Terraform files, example: main.tf, variables.tf
+        # This could be implemented based on your organization's Terraform best practices
+        pass
 
-        r = requests.put(
-            "https://api.github.com/orgs/{0}/teams/{1}/repos/{0}/{2}".format(
-                self.org, team_name, self.repo_name),
-            headers=self.auth_headers,
-            data=json.dumps({"permission": permission})
-        )
-
-        if r.status_code == 204:
-            print("{} team added as {}".format(team_name, permission))
-        else:
-            res_dict = json.loads(r.text)
-            print('Error Message: {}'.format(res_dict["message"]))
-
-    def add_gitignore_to_repo(self):
+    def add_python_configurations(self):
         """
-        Add a .gitignore file to the repository.
+        Add Python configurations to the repository.
         """
+        # Add Python files, example: requirements.txt, script.py
+        # This could be implemented based on your organization's Python best practices
+        pass
 
-        content = ".terraform\n.terraform.tfstate\n*.tfstate*\n*.zip*\n.idea\n.secret.auto.tfvars"
-        encoded_content = base64.b64encode(content.encode()).decode()
-
-        r = requests.put(
-            "https://api.github.com/repos/{}/{}/contents/.gitignore".format(
-                self.org, self.repo_name),
-            headers=self.auth_headers,
-            json={
-                "message": ".gitignore file added",
-                "content":  encoded_content
-            }
-        )
-
-        if r.status_code == 201:
-            print("{} .gitignore file added {}")
-        else:
-            res_dict = json.loads(r.text)
-            print('Error Message: {}'.format(res_dict["message"]))
-
-    def protect_branch(
-            self,
-            branch_name,
-            pr_dismissal_teams=None,
-            pr_dismissal_users=None,
-            pr_bypass_teams=None,
-            pr_bypass_users=None,
-            restriction_bypass_teams=None,
-            restriction_bypass_users=None):
-        """
-        Protect a branch in the repository with the given settings.
-        """
-
-        if pr_dismissal_teams is None:
-            pr_dismissal_teams = []
-        if pr_dismissal_users is None:
-            pr_dismissal_users = []
-        if pr_bypass_teams is None:
-            pr_bypass_teams = []
-        if pr_bypass_users is None:
-            pr_bypass_users = []
-        if restriction_bypass_teams is None:
-            restriction_bypass_teams = []
-        if restriction_bypass_users is None:
-            restriction_bypass_users = []
-
-        branch_protection_config = {
-            "required_status_checks": None,
-            "enforce_admins": True,
-            "required_pull_request_reviews": {
-                "dismissal_restrictions": {
-                    "teams": pr_dismissal_teams,
-                    "users": pr_dismissal_users
-                },
-                "dismiss_stale_reviews": True,
-                "required_approving_review_count": 1,
-                "require_last_push_approval": True,
-                "bypass_pull_request_allowances": {
-                    "teams": pr_bypass_teams,
-                    "users": pr_bypass_users
-                },
-            },
-            "restrictions": {
-                "teams": restriction_bypass_teams,
-                "users": restriction_bypass_users
-            },
-            "allow_force_pushes": False,
-            "allow_deletions": False,
-        }
-
-        r = requests.put(
-            "https://api.github.com/repos/{}/{}/branches/{}/protection".format(
-                self.org, self.repo_name, branch_name),
-            headers=self.auth_headers,
-            data=json.dumps(branch_protection_config)
-        )
-
-        if r.status_code == 200:
-            print("{} branch is now protected".format(branch_name))
-        else:
-            res_dict = json.loads(r.text)
-            print('Error Message: {}'.format(res_dict["message"]))
-
+    # Other methods for additional functionalities like adding CI/CD configurations, etc.
 
 if __name__ == '__main__':
+    # Parse command line arguments
+    parser = argparse.ArgumentParser(description="GitHub Repo Creation Utility",
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("-n", "--name", help="Repository Name")
+    parser.add_argument("-o", "--organization", help="Organization Name")
+    parser.add_argument("-d", "--description", help="Repository Description", default="")
+    parser.add_argument("-t", "--engineer-type", help="Engineer Type (platform or data)", default="platform")
+    args = parser.parse_args()
+    config = vars(args)
+    print(f"Arguments Passed in: {config}")
+
     if "GITHUB_TOKEN" not in os.environ:
         print("GITHUB TOKEN not in environment")
         exit(1)
@@ -250,20 +136,12 @@ if __name__ == '__main__':
         exit(1)
     else:
         print("Creating Repo")
-        repo = Repo(args.organization, args.name)
-        repo.create_repo("This is a description of the repo")
-        if args.defbranch != "main":
-            print("Updating Default Branch")
-            repo.rename_branch("main", args.defbranch)
-        print("Updating Collaborators")
-        # repo.add_repo_collaborator("admin-user", "admin")
-        # repo.add_repo_team("maintain-user", "maintain")
-        # repo.add_repo_team("admin-user", "admin")
-        print("Updating Default Branch Protection")
-        repo.protect_branch(
-            args.defbranch,
-            pr_dismissal_teams=["admin-user"],
-            pr_bypass_teams=["admin-user"],
-            restriction_bypass_teams=["admin-user"]
-        )
-        repo.add_gitignore_to_repo()
+        repo = Repo(args.organization, args.name, args.description, args.engineer_type)
+        repo_name = repo.create_repo()
+
+        if args.engineer_type == "platform":
+            repo.configure_for_platform_engineer()
+        elif args.engineer_type == "data":
+            repo.configure_for_data_engineer()
+        else:
+            print("Invalid engineer type provided.")
