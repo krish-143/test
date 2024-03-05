@@ -13,8 +13,8 @@ on:
         description: "Repository Description"
         required: false
       engineer-type:
-        description: "choose engineer type"
-        required: true  
+        description: "Engineer Type (platform or data)"
+        required: true
       defbranch:
         description: "Default Branch"
         required: false
