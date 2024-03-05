@@ -124,6 +124,7 @@ if __name__ == '__main__':
     parser.add_argument("-o", "--organization", help="Organization Name")
     parser.add_argument("-d", "--description", help="Repository Description", default="")
     parser.add_argument("-t", "--engineer-type", help="Engineer Type (platform or data)", default="platform")
+    parser.add_argument("-b", "--defbranch", help="Default Branch", default="main")
     args = parser.parse_args()
     config = vars(args)
     print(f"Arguments Passed in: {config}")
