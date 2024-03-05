@@ -125,7 +125,7 @@ if __name__ == '__main__':
     parser.add_argument("-d", "--description", help="Repository Description", default="")
     parser.add_argument("-t", "--engineer-type", help="Engineer Type (platform or data)", default="platform")
     parser.add_argument("-b", "--defbranch", help="Default Branch", default="main")
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()  # Parse only known arguments
     config = vars(args)
     print("Arguments Passed in: {config}")
 
@@ -146,3 +146,4 @@ if __name__ == '__main__':
             repo.configure_for_data_engineer()
         else:
             print("Invalid engineer type provided.")
+
