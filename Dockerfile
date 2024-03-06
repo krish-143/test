@@ -7,6 +7,10 @@ WORKDIR /usr/src/app
 # Copy only the requirements file first
 COPY requirements.txt ./
 
+# Create a non-root user and switch to it
+RUN adduser --system myuser
+USER myuser
+
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
