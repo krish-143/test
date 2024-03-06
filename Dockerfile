@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY requirements.txt ./
 
 # Create a non-root user and switch to it
-RUN adduser --system myuser
+RUN adduser  myuser
 USER myuser
 
 # Install dependencies
