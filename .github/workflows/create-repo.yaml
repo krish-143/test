@@ -40,7 +40,20 @@ jobs:
           docker build -t repo-creator .
           docker run --env GITHUB_TOKEN=${{ secrets.GH_TOKEN }} repo-creator -n ${{ github.event.inputs.name }} -o ${{ github.event.inputs.organization }} -d "${{ github.event.inputs.description }}" -b ${{ github.event.inputs.defbranch }} -t ${{ github.event.inputs.engineer-type }}
 
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: pip install flake8
+
       - name: Lint Python code
-        run: |
-          pip install flake8
-          flake8 main.py
+        run: flake8 main.py
