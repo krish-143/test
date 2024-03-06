@@ -84,8 +84,7 @@ class Repo:
         encoded_content = base64.b64encode(content.encode()).decode()
 
         r = requests.put(
-        "https://api.github.com/repos/{}/{}/contents/.gitignore".format(
-            self.org, self.repo_name),
+        f"https://api.github.com/repos/{self.org}/{self.repo_name}/contents/.gitignore",
         headers=self.auth_headers,
         json={
             "message": ".gitignore file added",
