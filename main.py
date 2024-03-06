@@ -180,4 +180,3 @@ if __name__ == '__main__':
             repo.add_gitignore_to_repo()
         else:
             print("Invalid engineer type provided.")
-
