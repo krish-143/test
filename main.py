@@ -75,17 +75,15 @@ class Repo:
             else:
                 res_dict = json.loads(r.text)
                 print('Error Message: {}'.format(res_dict["message"]))
+    def add_gitignore_to_repo(self):
+        """
+        Add a .gitignore file to the repository.
+        """
 
-   
-   def add_gitignore_to_repo(self):
-    """
-    Add a .gitignore file to the repository.
-    """
+        content = ".terraform\n.terraform.tfstate\n*.tfstate*\n*.zip*\n.idea\n.secret.auto.tfvars"
+        encoded_content = base64.b64encode(content.encode()).decode()
 
-    content = ".terraform\n.terraform.tfstate\n*.tfstate*\n*.zip*\n.idea\n.secret.auto.tfvars"
-    encoded_content = base64.b64encode(content.encode()).decode()
-
-    r = requests.put(
+        r = requests.put(
         "https://api.github.com/repos/{}/{}/contents/.gitignore".format(
             self.org, self.repo_name),
         headers=self.auth_headers,
@@ -93,15 +91,23 @@ class Repo:
             "message": ".gitignore file added",
             "content":  encoded_content
         }
-    )
+        )
 
-    if r.status_code == 201:
-        print(".gitignore file added successfully")
-    else:
-        res_dict = json.loads(r.text)
-        error_message = res_dict.get("message", "Unknown error")
-        status_code = r.status_code
-        print(f'Error Message: {error_message}, Status Code: {status_code}')
+        if r.status_code == 201:
+          print(".gitignore file added successfully")
+        else:
+            res_dict = json.loads(r.text)
+            error_message = res_dict.get("message", "Unknown error")
+            status_code = r.status_code
+            print(f'Error Message: {error_message}, Status Code: {status_code}')
+
+        if r.status_code == 201:
+            print(".gitignore file added successfully")
+        else:
+            res_dict = json.loads(r.text)
+            error_message = res_dict.get("message", "Unknown error")
+            status_code = r.status_code
+            print(f'Error Message: {error_message}, Status Code: {status_code}')
             
 
     def configure_for_platform_engineer(self):
