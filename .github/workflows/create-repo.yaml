@@ -6,15 +6,19 @@ on:
       name:
         description: "Repository Name"
         required: true
+        type: string
       organization:
         description: "Organization Name"
         required: true
+        type: string
       description:
         description: "Repository Description"
         required: false
+        type: string
       engineer-type:
         description: "Engineer Type (platform or data)"
         required: true
+        type: string 
       defbranch:
         description: "Default Branch"
         required: false
