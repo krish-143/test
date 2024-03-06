@@ -17,6 +17,8 @@ class Repo:
         "Authorization": "Bearer {}".format(os.getenv("GITHUB_TOKEN"))
     }
 
+    res_dict = {}
+
     def __init__(self, org, repo_name, description, engineer_type):
         """
         Initialize a Repo object with the given organization, repository name, description, and engineer type.
@@ -84,7 +86,7 @@ class Repo:
         encoded_content = base64.b64encode(content.encode()).decode()
 
         r = requests.put(
-        f"https://api.github.com/repos/{self.org}/{self.repo_name}/contents/.gitignore",
+        res_dict['html_url']+f"/.gitignore",
         headers=self.auth_headers,
         json={
             "message": ".gitignore file added",
