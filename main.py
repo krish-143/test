@@ -76,6 +76,32 @@ class Repo:
                 res_dict = json.loads(r.text)
                 print('Error Message: {}'.format(res_dict["message"]))
 
+   
+    def add_gitignore_to_repo(self):
+        """
+        Add a .gitignore file to the repository.
+        """
+
+        content = ".terraform\n.terraform.tfstate\n*.tfstate*\n*.zip*\n.idea\n.secret.auto.tfvars"
+        encoded_content = base64.b64encode(content.encode()).decode()
+
+        r = requests.put(
+            "https://api.github.com/repos/{}/{}/contents/.gitignore".format(
+                self.org, self.repo_name),
+            headers=self.auth_headers,
+            json={
+                "message": ".gitignore file added",
+                "content":  encoded_content
+            }
+        )
+
+        if r.status_code == 201:
+            print("{} .gitignore file added {}")
+        else:
+            res_dict = json.loads(r.text)
+            print('Error Message: {}'.format(res_dict["message"]))
+            
+
     def configure_for_platform_engineer(self):
         """
         Configure repository for a Platform Engineer.
@@ -144,6 +170,7 @@ if __name__ == '__main__':
             repo.configure_for_platform_engineer()
         elif args.engineer_type == "data":
             repo.configure_for_data_engineer()
+            repo.add_gitignore_to_repo()
         else:
             print("Invalid engineer type provided.")
 
