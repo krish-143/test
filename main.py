@@ -95,7 +95,7 @@ class Repo:
         # Add Python configurations
         self.add_python_configurations()
         # Add collaborators specific to Data Engineer
-        self.add_collaborators(["data-user:read"])
+        #self.add_collaborators(["data-user:read"])
         print("Repository configured for Data Engineer.")
 
     def add_terraform_configurations(self):
